@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 import tempfile
 from importlib.metadata import version
 from importlib.util import find_spec
@@ -169,6 +170,14 @@ def pytest_configure(config):
                 r"(80 from C header, got 88|88 from C header, got 96|80 from C header, got 96)"
                 " from PyObject:RuntimeWarning"
             ),
+        )
+
+    if sys.version_info >= (3, 12, 0, "candidate", 2):
+        # already patched (but not released) upstream:
+        # https://github.com/dateutil/dateutil/pull/1285
+        config.addinivalue_line(
+            "filterwarnings",
+            r"ignore:datetime\.datetime\.utcfromtimestamp\(\) is deprecated:DeprecationWarning",
         )
 
 
