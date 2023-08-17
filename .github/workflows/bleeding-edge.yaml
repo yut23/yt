@@ -68,6 +68,7 @@ jobs:
     - name: Run Tests
       run: |
         yt config set --local yt log_level 50  # Disable excessive output
+        python -m pip list
         pytest -vvv --color=yes
 
   create-issue:
