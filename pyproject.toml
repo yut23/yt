@@ -4,7 +4,9 @@ requires = [
   "setuptools>=61.2",
 
   # see https://github.com/yt-project/yt/issues/4044
-  "Cython>=3.0, <3.1",
+  "Cython>=3.0, <3.1 ; python_version < '3.12'",
+  "Cython<3.0 ; python_version >= '3.12'",
+
   "numpy>=1.25, <2.0",
   "ewah-bool-utils>=1.0.2",
 ]
