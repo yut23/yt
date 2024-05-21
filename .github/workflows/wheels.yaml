@@ -44,7 +44,7 @@ jobs:
           CIBW_ARCHS_WINDOWS: auto64
           CIBW_BUILD_VERBOSITY: 1
           CIBW_TEST_EXTRAS: test
-          CIBW_TEST_COMMAND: pytest -c {project}/pyproject.toml --color=yes --pyargs yt
+          CIBW_TEST_COMMAND: pytest -c {project}/pyproject.toml --rootdir . --color=yes --pyargs yt
 
       - uses: actions/upload-artifact@v4
         with:
