@@ -51,6 +51,8 @@ if sys.version_info >= (3, 10):
 else:
     from typing_extensions import TypeGuard
 
+    from yt._maintenance.backports import zip
+
 if sys.version_info >= (3, 11):
     from typing import assert_never
 else:
@@ -483,7 +485,7 @@ class VelocityCallback(PlotCallback):
                 )
             else:
                 assert_never(geometry)
-        qcb: "BaseQuiverCallback"
+        qcb: BaseQuiverCallback
         if plot._type_name == "CuttingPlane":
             qcb = CuttingQuiverCallback(
                 (ftype, "cutting_plane_velocity_x"),
@@ -609,7 +611,7 @@ class MagFieldCallback(PlotCallback):
         ftype = plot.data._current_fluid_type
         # Instantiation of these is cheap
         geometry: Geometry = plot.data.ds.geometry
-        qcb: "BaseQuiverCallback"
+        qcb: BaseQuiverCallback
         if plot._type_name == "CuttingPlane":
             if geometry is Geometry.CARTESIAN:
                 pass
@@ -745,7 +747,7 @@ class BaseQuiverCallback(PlotCallback, ABC):
             # do the transformation. Also check for the exact bounds of the transform
             # which can cause issues with projections.
             tform_bnds = plot._transform.x_limits + plot._transform.y_limits
-            if any(b.d == tb for b, tb in zip(bounds, tform_bnds)):
+            if any(b.d == tb for b, tb in zip(bounds, tform_bnds, strict=True)):
                 # note: cartopy will also raise its own warning, but it is useful to add this
                 # warning as well since the only way to avoid the exact bounds is to change the
                 # extent of the plot.
@@ -1167,7 +1169,7 @@ class GridBoundaryCallback(PlotCallback):
         GRE = GRE[new_indices]
         block_ids = np.array(block_ids)[new_indices]
 
-        for px_off, py_off in zip(pxs.ravel(), pys.ravel()):
+        for px_off, py_off in zip(pxs.ravel(), pys.ravel(), strict=True):
             pxo = px_off * DW[px_index]
             pyo = py_off * DW[py_index]
             left_edge_x = np.array((GLE[:, px_index] + pxo - x0) * dx) + xx0
@@ -1244,9 +1246,9 @@ class GridBoundaryCallback(PlotCallback):
                         y[i] = right_edge_y[n] - (12 * (yy1 - yy0) / ypix)
                     else:
                         raise RuntimeError(
-                            "Unrecognized id_loc value ('%s'). "
+                            f"Unrecognized id_loc value ({self.id_loc!r}). "
                             "Allowed values are 'lower left', lower right', "
-                            "'upper left', and 'upper right'." % self.id_loc
+                            "'upper left', and 'upper right'."
                         )
                     xi, yi = self._sanitize_xy_order(plot, x[i], y[i])
                     plot._axes.text(xi, yi, "%d" % block_ids[n], clip_on=True)

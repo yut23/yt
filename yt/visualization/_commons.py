@@ -10,9 +10,7 @@ from more_itertools import always_iterable
 
 from yt.config import ytcfg
 
-if sys.version_info >= (3, 10):
-    pass
-else:
+if sys.version_info < (3, 10):
     from yt._maintenance.backports import zip
 
 if TYPE_CHECKING:
@@ -258,8 +256,8 @@ def get_default_from_config(data_source, *, field, keys, defaults):
 
 def _get_units_label(units: str) -> str:
     if r"\frac" in units:
-        return r"$\ \ \left(%s\right)$" % units
+        return rf"$\ \ \left({units}\right)$"
     elif units:
-        return r"$\ \ (%s)$" % units
+        return rf"$\ \ ({units})$"
     else:
         return ""

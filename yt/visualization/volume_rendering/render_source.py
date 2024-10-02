@@ -290,7 +290,7 @@ class VolumeSource(RenderSource, abc.ABC):
         if not isinstance(value, valid_types):
             raise RuntimeError(
                 "transfer_function not a valid type, "
-                "received object of type %s" % type(value)
+                f"received object of type {type(value)}"
             )
         if isinstance(value, ProjectionTransferFunction):
             self.sampler_type = "projection"
@@ -607,7 +607,11 @@ class KDTreeVolumeSource(VolumeSource):
 
     def finalize_image(self, camera, image):
         if self._volume is not None:
-            image = self.volume.reduce_tree_images(image, camera.lens.viewpoint)
+            image = self.volume.reduce_tree_images(
+                image,
+                camera.lens.viewpoint,
+                use_opacity=self.transfer_function.grey_opacity,
+            )
 
         return super().finalize_image(camera, image)
 

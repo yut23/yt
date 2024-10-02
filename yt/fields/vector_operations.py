@@ -19,6 +19,9 @@ from yt.utilities.math_utils import (
 
 from .derived_field import NeedsParameter, ValidateParameter, ValidateSpatial
 
+if sys.version_info < (3, 10):
+    from yt._maintenance.backports import zip
+
 if sys.version_info >= (3, 11):
     from typing import assert_never
 else:
@@ -133,7 +136,7 @@ def create_los_field(registry, basename, field_units, ftype="gas", slice_info=No
         function=_los_field,
         units=field_units,
         validators=validators,
-        display_name=r"\mathrm{Line of Sight %s}" % basename.capitalize(),
+        display_name=rf"\mathrm{{Line of Sight {basename.capitalize()}}}",
     )
 
 
@@ -362,7 +365,7 @@ def create_vector_fields(
             ds = div_fac * just_one(data["index", "dz"])
             f += data[zn[0], f"relative_{zn[1]}"][1:-1, 1:-1, sl_right] / ds
             f -= data[zn[0], f"relative_{zn[1]}"][1:-1, 1:-1, sl_left] / ds
-            new_field = data.ds.arr(np.zeros(data[xn].shape, dtype=np.float64), f.units)
+            new_field = data.ds.arr(np.zeros(data[xn].shape, dtype="f8"), str(f.units))
             new_field[1:-1, 1:-1, 1:-1] = f
             return new_field
 
@@ -676,7 +679,7 @@ def create_averaged_field(
         )
         i_i, j_i, k_i = np.mgrid[0:3, 0:3, 0:3]
 
-        for i, j, k in zip(i_i.ravel(), j_i.ravel(), k_i.ravel()):
+        for i, j, k in zip(i_i.ravel(), j_i.ravel(), k_i.ravel(), strict=True):
             sl = (
                 slice(i, nx - (2 - i)),
                 slice(j, ny - (2 - j)),

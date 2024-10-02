@@ -1,12 +1,18 @@
 import glob
 import os
+import sys
 from collections import defaultdict
 from distutils.ccompiler import get_default_compiler
 from importlib import resources as importlib_resources
 
 from setuptools import Distribution, setup
 
+# ensure enclosing directory is in PYTHON_PATH to allow importing from setupext.py
+if (script_dir := os.path.dirname(__file__)) not in sys.path:
+    sys.path.insert(0, script_dir)
+
 from setupext import (
+    NUMPY_MACROS,
     check_CPP14_flags,
     check_for_openmp,
     check_for_pyembree,
@@ -111,6 +117,7 @@ if __name__ == "__main__":
         {
             "sources": ["yt/utilities/lib/fixed_interpolator.cpp"],
             "include_dirs": clib_include_dirs,
+            "define_macros": NUMPY_MACROS,
         },
     )
 

@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import uuid
 import weakref
@@ -45,6 +46,9 @@ from yt.utilities.logger import ytLogger as mylog
 
 from .definitions import process_data, set_particle_types
 from .fields import StreamFieldInfo
+
+if sys.version_info < (3, 10):
+    from yt._maintenance.backports import zip
 
 
 class StreamGrid(AMRGridPatch):
@@ -240,7 +244,7 @@ class StreamHierarchy(GridIndex):
             get_box_grids_level(
                 self.grid_left_edge[i, :],
                 self.grid_right_edge[i, :],
-                self.grid_levels[i] + 1,
+                self.grid_levels[i].item() + 1,
                 self.grid_left_edge,
                 self.grid_right_edge,
                 self.grid_levels,
@@ -422,7 +426,7 @@ class StreamDataset(Dataset):
             "magnetic_unit",
         )
         cgs_units = ("cm", "g", "s", "cm/s", "gauss")
-        for unit, attr, cgs_unit in zip(base_units, attrs, cgs_units):
+        for unit, attr, cgs_unit in zip(base_units, attrs, cgs_units, strict=True):
             if isinstance(unit, str):
                 if unit == "code_magnetic":
                     # If no magnetic unit was explicitly specified

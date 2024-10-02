@@ -1,10 +1,10 @@
-import builtins
 import functools
 from collections import OrderedDict
 from typing import Optional, Union
 
 import numpy as np
 
+from yt._maintenance.ipython_compat import IS_IPYTHON
 from yt.config import ytcfg
 from yt.funcs import mylog
 from yt.units.dimensions import length  # type: ignore
@@ -141,8 +141,8 @@ class Scene:
             lens_str = str(self.camera.lens)
             if "fisheye" in lens_str or "spherical" in lens_str:
                 raise NotImplementedError(
-                    "Line annotation sources are not supported for %s."
-                    % (type(self.camera.lens).__name__),
+                    "Line annotation sources are not supported "
+                    f"for {type(self.camera.lens).__name__}."
                 )
 
         if isinstance(render_source, (LineSource, PointSource)):
@@ -909,7 +909,7 @@ class Scene:
         >>> sc.show()
 
         """
-        if "__IPYTHON__" in dir(builtins):
+        if IS_IPYTHON:
             from IPython.display import display
 
             self._sigma_clip = sigma_clip
