@@ -147,6 +147,40 @@ def test_particleprojectionplot_set_colorbar_properties():
     return p.plots[field].figure
 
 
+class TestMultipanelPlot:
+    @classmethod
+    def setup_class(cls):
+        cls.fields = [
+            ("gas", "density"),
+            ("gas", "velocity_x"),
+            ("gas", "velocity_y"),
+            ("gas", "velocity_magnitude"),
+        ]
+        cls.ds = fake_random_ds(16)
+
+    @pytest.mark.skipif(
+        mpl.__version_info__ < (3, 7),
+        reason="colorbar cannot currently be set horizontal in multi-panel plot with matplotlib older than 3.7.0",
+    )
+    @pytest.mark.parametrize("cbar_location", ["top", "bottom", "left", "right"])
+    @pytest.mark.mpl_image_compare
+    def test_multipanelplot_colorbar_orientation_simple(self, cbar_location):
+        p = SlicePlot(self.ds, "z", self.fields)
+        return p.export_to_mpl_figure((2, 2), cbar_location=cbar_location)
+
+    @pytest.mark.parametrize("cbar_location", ["top", "bottom"])
+    def test_multipanelplot_colorbar_orientation_warning(self, cbar_location):
+        p = SlicePlot(self.ds, "z", self.fields)
+        if mpl.__version_info__ < (3, 7):
+            with pytest.warns(
+                UserWarning,
+                match="Cannot properly set the orientation of colorbar.",
+            ):
+                p.export_to_mpl_figure((2, 2), cbar_location=cbar_location)
+        else:
+            p.export_to_mpl_figure((2, 2), cbar_location=cbar_location)
+
+
 class TestProfilePlot:
     @classmethod
     def setup_class(cls):
@@ -398,6 +432,34 @@ class TestCylindricalZSlicePlot:
     def test_cylindrical_z_linear(self, field):
         self.plot.set_log("noise0", False)
         return self.plot.plots[field].figure
+
+    @pytest.mark.parametrize(
+        "theta_min, theta_max",
+        [
+            pytest.param(0, 2 * np.pi, id="full_azimuthal_domain"),
+            pytest.param(3 / 4 * np.pi, 5 / 4 * np.pi, id="restricted_sector"),
+        ],
+    )
+    @pytest.mark.mpl_image_compare
+    def test_exclude_pixels_with_partial_bbox_intersection(self, theta_min, theta_max):
+        rmin = 1.0
+        rmax = 2.0
+        ds = fake_amr_ds(
+            geometry="cylindrical",
+            domain_left_edge=[rmin, 0, theta_min],
+            domain_right_edge=[rmax, 1, theta_max],
+        )
+        add_noise_fields(ds)
+        plot = SlicePlot(ds, "z", ("gas", "noise0"))
+        for radius in [rmin - 0.01, rmax]:
+            plot.annotate_sphere(
+                center=[0, 0, 0],
+                radius=radius,
+                circle_args={"color": "red", "alpha": 0.4, "linewidth": 3},
+            )
+        plot.annotate_title("all pixels beyond (or on) red lines should be white")
+        plot.render()
+        return plot.plots["gas", "noise0"].figure
 
 
 class TestSphericalPhiSlicePlot:
